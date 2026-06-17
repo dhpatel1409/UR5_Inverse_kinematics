@@ -6,6 +6,7 @@ import numpy as np
 # joint_angle=theta_i
 
 def tranformation_matrix(a , alpha , d , theta):
+    #Input D-H parameters of frame as input
     cos_theta = np.cos(theta)
     sin_theta = np.sin(theta)
     cos_alpha = np.cos(alpha)
