@@ -1,4 +1,4 @@
-# UR5 Inverse Kinematics Verification Tool 🦾
+# UR5 Inverse Kinematics Verification Tool
 
 > A mathematically rigorous, from-scratch Python engine to model, compute, and cross-verify the forward and inverse kinematics of a 6-axis Universal Robots UR5 manipulator.
 
@@ -22,41 +22,6 @@ The UR5 is a 6-DoF (Degree of Freedom) serial manipulator widely used in industr
 
 The pipeline achieves convergence to a tolerance of **10⁻⁵**, confirming numerical precision across all stages.
 
----
-
-## 📁 Project Structure
-
-```
-UR5_Inverse_Kinematics/
-├── ur5_kinematics.py              # Core FK, IK, and Jacobian implementation
-├── verification.py                # End-to-end verification pipeline
-├── README.md
-├── requirements.txt
-├── assets/
-│   ├── UR5_Robot.png              # Robot image
-│   ├── D_H_parameter_model.png    # DH parameter table/diagram
-│   └── calculating_jacobian.png   # Jacobian derivation diagram
-```
-
----
-
-## ⚙️ Installation
-
-**Requirements:** Python 3.8+
-
-```bash
-git clone https://github.com/your-username/UR5_Inverse_Kinematics.git
-cd UR5_Inverse_Kinematics
-pip install -r requirements.txt
-```
-
----
-
-## 🚀 Usage
-
-```bash
-python verification.py
-```
 
 This runs the full pipeline: defines a ground-truth joint configuration → computes FK → solves IK → re-verifies via FK → reports the absolute error matrix.
 
@@ -77,10 +42,19 @@ The UR5's kinematic structure is encoded using the **Denavit-Hartenberg conventi
 
 Each pair of consecutive frames is related by a 4×4 homogeneous transformation matrix:
 
-$$^{i-1}T_i = R_z(\theta_i) \cdot T_z(d_i) \cdot T_x(a_i) \cdot R_x(\alpha_i)$$
+$$
+{}^{i-1}T_i =
+\begin{bmatrix}
+\cos\theta_i & -\sin\theta_i\cos\alpha_i & \sin\theta_i\sin\alpha_i & a_i\cos\theta_i \\
+\sin\theta_i & \cos\theta_i\cos\alpha_i & -\cos\theta_i\sin\alpha_i & a_i\sin\theta_i \\
+0 & \sin\alpha_i & \cos\alpha_i & d_i \\
+0 & 0 & 0 & 1
+\end{bmatrix}
+$$
+
 
 <p align="center">
-  <img src="assets/D_H_parameter_model.png" width="500"><br>
+  <img src="D_H_parameter_model.png" width="500"><br>
   <em>Figure 2: DH Parameter Model for UR5</em>
 </p>
 
@@ -90,11 +64,17 @@ $$^{i-1}T_i = R_z(\theta_i) \cdot T_z(d_i) \cdot T_x(a_i) \cdot R_x(\alpha_i)$$
 
 Forward Kinematics computes the **end-effector pose** (position + orientation) from a given set of joint angles by chaining all six transformation matrices:
 
-$$T_{0 \to 6} = \,^0T_1 \cdot \,^1T_2 \cdot \,^2T_3 \cdot \,^3T_4 \cdot \,^4T_5 \cdot \,^5T_6$$
+$$T_{0 \to 6} = \^0T_1 \cdot \^1T_2 \cdot \^2T_3 \cdot \^3T_4 \cdot \^4T_5 \cdot \^5T_6$$
 
 The result is a 4×4 homogeneous matrix encoding the full 3D pose of the tool frame relative to the robot base:
 
-$$T = \begin{bmatrix} R_{3\times3} & p_{3\times1} \\ 0 & 1 \end{bmatrix}$$
+$$
+T =
+\begin{bmatrix}
+R_{3\times3} & p_{3\times1} \\
+0_{1\times3} & 1
+\end{bmatrix}
+$$
 
 where **R** is the rotation matrix and **p** is the end-effector position vector.
 
@@ -116,7 +96,7 @@ where:
 - **J⁺** is the **Moore-Penrose pseudo-inverse** of the Jacobian, providing a robust least-squares solution even near singular configurations
 
 <p align="center">
-  <img src="assets/calculating_jacobian.png" width="500"><br>
+  <img src="calculating_jacobian.png" width="500"><br>
   <em>Figure 3: Jacobian Matrix Formulation used with Newton-Raphson</em>
 </p>
 
@@ -146,17 +126,6 @@ Step 5: Error Evaluation
 ```
 
 A successful run produces an absolute error below **10⁻⁵**, confirming that the IK solver reliably recovers a joint configuration that reproduces the target pose to numerical precision.
-
----
-
-## 📊 Results
-
-| Metric | Value |
-|--------|-------|
-| Convergence tolerance | 10⁻⁵ |
-| Method | Newton-Raphson + Moore-Penrose pseudo-inverse |
-| DoF | 6 |
-| Frames modeled | 7 (base + 6 joints) |
 
 ---
 
